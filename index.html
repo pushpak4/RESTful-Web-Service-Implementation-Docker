@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Client Website</title>
+</head>
+<body>
+    <h1>Customer List</h1>
+    <ul id="customer-list"></ul>
+
+    <h1>Customer Details</h1>
+    <div id="customer-details"></div>
+
+    <h1>Customer Orders</h1>
+    <ul id="customer-orders"></ul>
+
+    <h1>Order Details</h1>
+    <div id="order-details"></div>
+
+    <script>
+        // Retrieve customer list
+        fetch('/customers')
+            .then(response => response.json())
+            .then(data => {
+                const customerList = document.getElementById('customer-list');
+                data.forEach(customer => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Customer ${customer.id}: ${customer.name}`;
+                    listItem.addEventListener('click', () => {
+                        // Retrieve customer details
+                        fetch(`/customers/${customer.id}`)
+                            .then(response => response.json())
+                            .then(customerDetails => {
+                                const customerDetailsContainer = document.getElementById('customer-details');
+                                customerDetailsContainer.textContent = `ID: ${customerDetails.id}, Name: ${customerDetails.name}, Email: ${customerDetails.email}`;
+                            })
+                            .catch(error => console.error(error));
+
+                        // Retrieve customer orders
+                        fetch(`/customers/${customer.id}/orders`)
+                            .then(response => response.json())
+                            .then(orders => {
+                                const customerOrdersList = document.getElementById('customer-orders');
+                                customerOrdersList.innerHTML = '';
+                                orders.forEach(order => {
+                                    const orderItem = document.createElement('li');
+                                    orderItem.textContent = `Order ${order.id}: ${order.product}`;
+                                    orderItem.addEventListener('click', () => {
+                                        // Retrieve order details
+                                        fetch(`/customers/${customer.id}/orders/${order.id}`)
+                                            .then(response => response.json())
+                                            .then(orderDetails => {
+                                                const orderDetailsContainer = document.getElementById('order-details');
+                                                orderDetailsContainer.textContent = `Order ID: ${orderDetails.id}, Product: ${orderDetails.product}, Quantity: ${orderDetails.quantity}`;
+                                            })
+                                            .catch(error => console.error(error));
+                                    });
+                                    customerOrdersList.appendChild(orderItem);
+                                });
+                            })
+                            .catch(error => console.error(error));
+                    });
+                    customerList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error(error));
+    </script>
+</body>
+</html>
